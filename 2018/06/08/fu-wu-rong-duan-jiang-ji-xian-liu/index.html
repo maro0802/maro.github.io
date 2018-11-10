@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="zh-cn">
+<html lang="zh-CN">
 <head>
     
 
@@ -26,7 +26,7 @@
     <link rel="stylesheet" type="text/css" href="/css/my.css">
 
     <script src="/libs/jquery/jquery-2.2.0.min.js"></script>
-</head>
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
 
 </head>
 
@@ -237,7 +237,157 @@
                 <h5 id="服务熔断"><a href="#服务熔断" class="headerlink" title="服务熔断"></a>服务熔断</h5><p>在介绍熔断机制之前，我们需要了解微服务的雪崩效应。在微服务架构中，微服务是完成一个单一的业务功能，这样做的好处是可以做到解耦，每个微服务可以独立演进。但是，一个应用可能会有多个微服务组成，微服务之间的数据交互通过远程过程调用完成。这就带来一个问题，假设微服务A调用微服务B和微服务C，微服务B和微服务C又调用其它的微服务，这就是所谓的“扇出”。如果扇出的链路上某个微服务的调用响应时间过长或者不可用，对微服务A的调用就会占用越来越多的系统资源，进而引起系统崩溃，所谓的“雪崩效应”。<br><img src="/images/pasted-0.png" alt="upload successful"><br>熔断机制是应对雪崩效应的一种微服务链路保护机制。我们在各种场景下都会接触到熔断这两个字。高压电路中，如果某个地方的电压过高，熔断器就会熔断，对电路进行保护。股票交易中，如果股票指数过高，也会采用熔断机制，暂停股票的交易。同样，在微服务架构中，熔断机制也是起着类似的作用。当扇出链路的某个微服务不可用或者响应时间太长时，会进行服务的降级，进而熔断该节点微服务的调用，快速返回错误的响应信息。当检测到该节点微服务调用响应正常后，恢复调用链路。</p>
 <p>在Spring Cloud框架里，熔断机制通过Hystrix实现。Hystrix会监控微服务间调用的状况，当失败的调用到一定阈值，缺省是5秒内20次调用失败，就会启动熔断机制。</p>
 <p>在dubbo中也可利用nio超时+失败次数做熔断。<br>dubbo可以通过扩展Filter的方式引入Hystrix，具体代码如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.netease.hystrix.dubbo.rpc.filter;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="keyword">import</span> com.alibaba.dubbo.common.Constants;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.alibaba.dubbo.common.extension.Activate;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.alibaba.dubbo.rpc.Filter;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.alibaba.dubbo.rpc.Invocation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.alibaba.dubbo.rpc.Invoker;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.alibaba.dubbo.rpc.Result;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.alibaba.dubbo.rpc.RpcException;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="meta">@Activate</span>(group = Constants.CONSUMER)</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HystrixFilter</span> <span class="keyword">implements</span> <span class="title">Filter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> Result <span class="title">invoke</span><span class="params">(Invoker invoker, Invocation invocation)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line"></span><br><span class="line">DubboHystrixCommand command = <span class="keyword">new</span> DubboHystrixCommand(invoker, invocation);</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> command.execute();</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DubboHystrixCommand</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="keyword">package</span> com.netease.hystrix.dubbo.rpc.filter;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="keyword">import</span> org.apache.log4j.Logger;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="keyword">import</span> com.alibaba.dubbo.common.URL;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.alibaba.dubbo.rpc.Invocation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.alibaba.dubbo.rpc.Invoker;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.alibaba.dubbo.rpc.Result;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.netflix.hystrix.HystrixCommand;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.netflix.hystrix.HystrixCommandGroupKey;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.netflix.hystrix.HystrixCommandKey;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.netflix.hystrix.HystrixCommandProperties;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.netflix.hystrix.HystrixThreadPoolProperties;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DubboHystrixCommand</span> <span class="keyword">extends</span> <span class="title">HystrixCommand</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> Logger logger = Logger.getLogger(DubboHystrixCommand.class);</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> DEFAULT_THREADPOOL_CORE_SIZE = <span class="number">30</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> Invoker invoker;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> Invocation invocation;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">DubboHystrixCommand</span><span class="params">(Invoker invoker,Invocation invocation)</span></span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">super</span>(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(invoker.getInterface().getName()))</span><br><span class="line"></span><br><span class="line">.andCommandKey(HystrixCommandKey.Factory.asKey(String.format(<span class="string">"%s_%d"</span>, invocation.getMethodName(),</span><br><span class="line"></span><br><span class="line">invocation.getArguments() == <span class="keyword">null</span> ? <span class="number">0</span> : invocation.getArguments().length)))</span><br><span class="line"></span><br><span class="line">.andCommandPropertiesDefaults(HystrixCommandProperties.Setter()</span><br><span class="line"></span><br><span class="line">.withCircuitBreakerRequestVolumeThreshold(<span class="number">20</span>)<span class="comment">//10秒钟内至少19此请求失败，熔断器才发挥起作用</span></span><br><span class="line"></span><br><span class="line">.withCircuitBreakerSleepWindowInMilliseconds(<span class="number">30000</span>)<span class="comment">//熔断器中断请求30秒后会进入半打开状态,放部分流量过去重试</span></span><br><span class="line"></span><br><span class="line">.withCircuitBreakerErrorThresholdPercentage(<span class="number">50</span>)<span class="comment">//错误率达到50开启熔断保护</span></span><br><span class="line"></span><br><span class="line">.withExecutionTimeoutEnabled(<span class="keyword">false</span>))<span class="comment">//使用dubbo的超时，禁用这里的超时</span></span><br><span class="line"></span><br><span class="line">.andThreadPoolPropertiesDefaults(HystrixThreadPoolProperties.Setter().withCoreSize(getThreadPoolCoreSize(invoker.getUrl()))));<span class="comment">//线程池为30</span></span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"><span class="keyword">this</span>.invoker=invoker;</span><br><span class="line"></span><br><span class="line"><span class="keyword">this</span>.invocation=invocation;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">* 获取线程池大小</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> url</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">* <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">getThreadPoolCoreSize</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (url != <span class="keyword">null</span>) &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> size = url.getParameter(<span class="string">"ThreadPoolCoreSize"</span>, DEFAULT_THREADPOOL_CORE_SIZE);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</span><br><span class="line"></span><br><span class="line">logger.debug(<span class="string">"ThreadPoolCoreSize:"</span> + size);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> size;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="keyword">return</span> DEFAULT_THREADPOOL_CORE_SIZE;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> Result <span class="title">run</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> invoker.invoke(invocation);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class=" language-java"><code class="language-java"><span class="token keyword">package</span> com<span class="token punctuation">.</span>netease<span class="token punctuation">.</span>hystrix<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>rpc<span class="token punctuation">.</span>filter<span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>common<span class="token punctuation">.</span>Constants<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>common<span class="token punctuation">.</span>extension<span class="token punctuation">.</span>Activate<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>rpc<span class="token punctuation">.</span>Filter<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>rpc<span class="token punctuation">.</span>Invocation<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>rpc<span class="token punctuation">.</span>Invoker<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>rpc<span class="token punctuation">.</span>Result<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>rpc<span class="token punctuation">.</span>RpcException<span class="token punctuation">;</span>
+
+
+<span class="token annotation punctuation">@Activate</span><span class="token punctuation">(</span>group <span class="token operator">=</span> Constants<span class="token punctuation">.</span>CONSUMER<span class="token punctuation">)</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">HystrixFilter</span> <span class="token keyword">implements</span> <span class="token class-name">Filter</span> <span class="token punctuation">{</span>
+
+
+<span class="token annotation punctuation">@Override</span>
+
+<span class="token keyword">public</span> Result <span class="token function">invoke</span><span class="token punctuation">(</span>Invoker invoker<span class="token punctuation">,</span> Invocation invocation<span class="token punctuation">)</span> <span class="token keyword">throws</span> RpcException <span class="token punctuation">{</span>
+
+DubboHystrixCommand command <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">DubboHystrixCommand</span><span class="token punctuation">(</span>invoker<span class="token punctuation">,</span> invocation<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">return</span> command<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">}</span>
+
+
+<span class="token punctuation">}</span>
+
+DubboHystrixCommand
+
+
+
+<span class="token keyword">package</span> com<span class="token punctuation">.</span>netease<span class="token punctuation">.</span>hystrix<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>rpc<span class="token punctuation">.</span>filter<span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>log4j<span class="token punctuation">.</span>Logger<span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>common<span class="token punctuation">.</span>URL<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>rpc<span class="token punctuation">.</span>Invocation<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>rpc<span class="token punctuation">.</span>Invoker<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>dubbo<span class="token punctuation">.</span>rpc<span class="token punctuation">.</span>Result<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>netflix<span class="token punctuation">.</span>hystrix<span class="token punctuation">.</span>HystrixCommand<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>netflix<span class="token punctuation">.</span>hystrix<span class="token punctuation">.</span>HystrixCommandGroupKey<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>netflix<span class="token punctuation">.</span>hystrix<span class="token punctuation">.</span>HystrixCommandKey<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>netflix<span class="token punctuation">.</span>hystrix<span class="token punctuation">.</span>HystrixCommandProperties<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> com<span class="token punctuation">.</span>netflix<span class="token punctuation">.</span>hystrix<span class="token punctuation">.</span>HystrixThreadPoolProperties<span class="token punctuation">;</span>
+
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">DubboHystrixCommand</span> <span class="token keyword">extends</span> <span class="token class-name">HystrixCommand</span> <span class="token punctuation">{</span>
+
+
+<span class="token keyword">private</span> <span class="token keyword">static</span> Logger logger <span class="token operator">=</span> Logger<span class="token punctuation">.</span><span class="token function">getLogger</span><span class="token punctuation">(</span>DubboHystrixCommand<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> DEFAULT_THREADPOOL_CORE_SIZE <span class="token operator">=</span> <span class="token number">30</span><span class="token punctuation">;</span>
+
+<span class="token keyword">private</span> Invoker invoker<span class="token punctuation">;</span>
+
+<span class="token keyword">private</span> Invocation invocation<span class="token punctuation">;</span>
+
+
+<span class="token keyword">public</span> <span class="token function">DubboHystrixCommand</span><span class="token punctuation">(</span>Invoker invoker<span class="token punctuation">,</span>Invocation invocation<span class="token punctuation">)</span><span class="token punctuation">{</span>
+
+<span class="token keyword">super</span><span class="token punctuation">(</span>Setter<span class="token punctuation">.</span><span class="token function">withGroupKey</span><span class="token punctuation">(</span>HystrixCommandGroupKey<span class="token punctuation">.</span>Factory<span class="token punctuation">.</span><span class="token function">asKey</span><span class="token punctuation">(</span>invoker<span class="token punctuation">.</span><span class="token function">getInterface</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token punctuation">.</span><span class="token function">andCommandKey</span><span class="token punctuation">(</span>HystrixCommandKey<span class="token punctuation">.</span>Factory<span class="token punctuation">.</span><span class="token function">asKey</span><span class="token punctuation">(</span>String<span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s_%d"</span><span class="token punctuation">,</span> invocation<span class="token punctuation">.</span><span class="token function">getMethodName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+
+invocation<span class="token punctuation">.</span><span class="token function">getArguments</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> null <span class="token operator">?</span> <span class="token number">0</span> <span class="token operator">:</span> invocation<span class="token punctuation">.</span><span class="token function">getArguments</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>length<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token punctuation">.</span><span class="token function">andCommandPropertiesDefaults</span><span class="token punctuation">(</span>HystrixCommandProperties<span class="token punctuation">.</span><span class="token function">Setter</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token punctuation">.</span><span class="token function">withCircuitBreakerRequestVolumeThreshold</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">//10秒钟内至少19此请求失败，熔断器才发挥起作用</span>
+
+<span class="token punctuation">.</span><span class="token function">withCircuitBreakerSleepWindowInMilliseconds</span><span class="token punctuation">(</span><span class="token number">30000</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">//熔断器中断请求30秒后会进入半打开状态,放部分流量过去重试</span>
+
+<span class="token punctuation">.</span><span class="token function">withCircuitBreakerErrorThresholdPercentage</span><span class="token punctuation">(</span><span class="token number">50</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">//错误率达到50开启熔断保护</span>
+
+<span class="token punctuation">.</span><span class="token function">withExecutionTimeoutEnabled</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">//使用dubbo的超时，禁用这里的超时</span>
+
+<span class="token punctuation">.</span><span class="token function">andThreadPoolPropertiesDefaults</span><span class="token punctuation">(</span>HystrixThreadPoolProperties<span class="token punctuation">.</span><span class="token function">Setter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">withCoreSize</span><span class="token punctuation">(</span><span class="token function">getThreadPoolCoreSize</span><span class="token punctuation">(</span>invoker<span class="token punctuation">.</span><span class="token function">getUrl</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment" spellcheck="true">//线程池为30</span>
+
+
+
+<span class="token keyword">this</span><span class="token punctuation">.</span>invoker<span class="token operator">=</span>invoker<span class="token punctuation">;</span>
+
+<span class="token keyword">this</span><span class="token punctuation">.</span>invocation<span class="token operator">=</span>invocation<span class="token punctuation">;</span>
+
+<span class="token punctuation">}</span>
+
+
+<span class="token comment" spellcheck="true">/**
+
+* 获取线程池大小
+
+*
+
+* @param url
+
+* @return
+
+*/</span>
+
+<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">getThreadPoolCoreSize</span><span class="token punctuation">(</span>URL url<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span>url <span class="token operator">!=</span> null<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+<span class="token keyword">int</span> size <span class="token operator">=</span> url<span class="token punctuation">.</span><span class="token function">getParameter</span><span class="token punctuation">(</span><span class="token string">"ThreadPoolCoreSize"</span><span class="token punctuation">,</span> DEFAULT_THREADPOOL_CORE_SIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span>logger<span class="token punctuation">.</span><span class="token function">isDebugEnabled</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+logger<span class="token punctuation">.</span><span class="token function">debug</span><span class="token punctuation">(</span><span class="token string">"ThreadPoolCoreSize:"</span> <span class="token operator">+</span> size<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">}</span>
+
+<span class="token keyword">return</span> size<span class="token punctuation">;</span>
+
+<span class="token punctuation">}</span>
+
+
+<span class="token keyword">return</span> DEFAULT_THREADPOOL_CORE_SIZE<span class="token punctuation">;</span>
+
+
+<span class="token punctuation">}</span>
+
+
+<span class="token annotation punctuation">@Override</span>
+
+<span class="token keyword">protected</span> Result <span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+
+<span class="token keyword">return</span> invoker<span class="token punctuation">.</span><span class="token function">invoke</span><span class="token punctuation">(</span>invocation<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">}</span>
+
+<span class="token punctuation">}</span>
+</code></pre>
 <p>线程池大小可以通过dubbo参数进行控制，当前其他的参数也可以通过类似的方式进行配置</p>
 <p>代码添加好后在，resource添加加载文本</p>
 <p>|-resources<br>|-META-INF<br>|-dubbo<br>|-com.alibaba.dubbo.rpc.Filter (纯文本文件，内容为：hystrix=com.netease.hystrix.dubbo.rpc.filter.HystrixFilter</p>
@@ -261,7 +411,23 @@
 <p>详细的配置请参考官方文档。另外如MySQL（如max_connections）、Redis（如tcp-backlog）都会有类似的限制连接数的配置。</p>
 <h5 id="池化技术"><a href="#池化技术" class="headerlink" title="池化技术"></a>池化技术</h5><p>如果有的资源是稀缺资源（如数据库连接、线程），而且可能有多个系统都会去使用它，那么需要限制应用；可以使用池化技术来限制总资源数：连接池、线程池。比如分配给每个应用的数据库连接是100，那么本应用最多可以使用100个资源，超出了可以等待或者抛异常。<br>限流某个接口的总并发/请求数</p>
 <p>如果接口可能会有突发访问情况，但又担心访问量太大造成崩溃，如抢购业务；这个时候就需要限制这个接口的总并发/请求数总请求数了；因为粒度比较细，可以为每个接口都设置相应的阀值。可以使用Java中的AtomicLong进行限流：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(atomic.incrementAndGet() &gt; 限流数) &#123;</span><br><span class="line"></span><br><span class="line"><span class="comment">//拒绝请求</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//处理请求</span></span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line"></span><br><span class="line">atomic.decrementAndGet();</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class=" language-java"><code class="language-java">
+<span class="token keyword">try</span> <span class="token punctuation">{</span>
+
+<span class="token keyword">if</span><span class="token punctuation">(</span>atomic<span class="token punctuation">.</span><span class="token function">incrementAndGet</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">></span> 限流数<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+<span class="token comment" spellcheck="true">//拒绝请求</span>
+
+<span class="token punctuation">}</span>
+
+<span class="token comment" spellcheck="true">//处理请求</span>
+
+<span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+
+atomic<span class="token punctuation">.</span><span class="token function">decrementAndGet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">}</span>
+</code></pre>
 <p>参考：<br><a href="https://blog.csdn.net/g_hongjin/article/details/51649246" target="_blank" rel="noopener">https://blog.csdn.net/g_hongjin/article/details/51649246</a></p>
 <h5 id="分布式限流"><a href="#分布式限流" class="headerlink" title="分布式限流"></a>分布式限流</h5><p>分布式限流最关键的是要将限流服务做成原子化，而解决方案可以使使用redis+lua或者nginx+lua技术进行实现，通过这两种技术可以实现的高并发和高性能。</p>
 <p>首先我们来使用redis+lua实现时间窗内某个接口的请求数限流，实现了该功能后可以改造为限流总并发/请求数和限制总资源数。Lua本身就是一种编程语言，也可以使用它实现复杂的令牌桶或漏桶算法。</p>
@@ -418,10 +584,10 @@
 
             <div class="reprint">
                 <p>
-                    <span class="reprint-tip">Reprint please specify: </span>
+                    <span class="reprint-tip">转载请注明: </span>
                     <a href="http://www.maro.ink" class="b-link-green">Maro's Blog</a>
                     <i class="fa fa-angle-right fa-lg fa-fw text-color"></i>
-                    <a href="/2018/06/08/服务溶断、降级、限流/" class="b-link-green">服务溶断、降级、限流</a>
+                    <a href="/2018/06/08/fu-wu-rong-duan-jiang-ji-xian-liu/" class="b-link-green">服务溶断、降级、限流</a>
                 </p>
             </div>
         </div>
@@ -441,9 +607,9 @@
     <div class="row article-row">
         
         <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge left-badge text-color">Previous</div>
+            <div class="article-badge left-badge text-color">上一篇</div>
             <div class="card">
-                <a href="/2018/06/08/服务降级方案/">
+                <a href="/2018/06/08/fu-wu-jiang-ji-fang-an/">
                     <div class="card-image">
                         
                         
@@ -486,7 +652,7 @@
         
         
         <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">Next</div>
+            <div class="article-badge right-badge text-color">下一篇</div>
             <div class="card">
                 <a href="/2016/08/01/hello-world/">
                     <div class="card-image">
@@ -545,8 +711,8 @@
 <div id="searchModal" class="modal">
     <div class="modal-content">
         <div class="search-header">
-            <span class="title">Search</span>
-            <input type="search" id="searchInput" name="s" placeholder="Please enter a search keyword" class="search-input" autofocus>
+            <span class="title">搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字" class="search-input" autofocus>
         </div>
         <div id="searchResult"></div>
     </div>
