@@ -3,6 +3,29 @@
   
     
     <entry>
+      <title>Java项目性能瓶颈定位（转）</title>
+      <link href="/2018/11/12/java-xiang-mu-xing-neng-ping-jing-ding-wei-zhuan/"/>
+      <url>/2018/11/12/java-xiang-mu-xing-neng-ping-jing-ding-wei-zhuan/</url>
+      
+        <content type="html"><![CDATA[<h4 id="文章目标"><a href="#文章目标" class="headerlink" title="文章目标"></a>文章目标</h4><p>当Java项目出现性能瓶颈的时候，通常先是对资源消耗做分析，包括CPU，文件IO，网络IO，内存；之后再结合相应工具查找消耗主体的程序代码。本文主要介绍系统资源消耗的分析过程，以及常用的Java线程分析方法。 </p><h5 id="CPU分析"><a href="#CPU分析" class="headerlink" title="CPU分析"></a>CPU分析</h5><p>在Linux中，CPU主要用于处理中断、内核及用户任务，优先级为：中断&gt;内核&gt;用户。在分析CPU消耗状况的时候，需要了解以下三个概念。</p><p><strong>上下文切换</strong><br>每个CPU(或多核CPU的每个核心)在同一时间只能执行一个线程&lt;不包括超线程CPU&gt;，Linux采用抢占式调度。当线程执行到达一个时间片后，如果线程有IO阻塞或高优先级线程要执行的时候，Linux将执行线程切换，切换前先保存当前线程执行状态(现场)，并恢复待执行线程状态，这个过程就叫做上下文切换。在Java应用中，文件IO、网络IO、锁等待、线程Sleep操作都会使该线程进行阻塞或睡眠状态，从而触发上下文切换。频繁的上下文切换会造成内核占用较高的CPU，使得响应速度下降。</p><p><strong>运行队列</strong><br>每个CPU核心都维护了一个可运行队列，例如一个4核CPU，启动8个线程，且8个线程都处于可运行状态，平均分配情况下，每个核心的可运行队列里就有2个线程。通常而言，系统的load是由CPU运行队列决定的，假设以上状态维持了1分钟，则1分钟内系统load就是2。运行队列值越大，代表线程要消耗越长的时间才能执行完成。通常建议每个核心运行队列为1-3个。</p><p><strong>利用率</strong><br>CPU利用率指在用户进程，内核，中断处理，IO等待以及空闲五个部分百分比，这五个值是用来分析CPU消耗情况的关键指标。Linux System and NetWork Performent Monitoring建议用户进程/内核消耗比例为 65%-70% / 30%-35% 左右。</p><p>常用top, pidstat, sar, vmstat 1 分析占用情况<br>us：用户进程处理占用百分比<br>sy：内核线程处理占用百分比<br>ni：被nice命令改变优先级的任务所占百分比<br>id：cpu空闲时间占用百分比<br>wa：在执行过程中等待IO所占百分比<br>hi：硬件中断占用百分比<br>si：软件中断占用百分比<br>st：虚拟机偷取时间百分比</p><p>对Java应用而言，线程消耗主要体现在us, sy上：</p><p><strong>us: 用户进程处理占用百分比</strong><br>us占用分析，需要依靠相关命令找出主体消耗线程ID(tid)，然后转化成十六进制(printf “%x\n” tid)，再用 kill -3 java_pid或 jstack -l java_pid 命令dump出线程信息，通过之前的十六进制值在dump信息中找到nid相等的线程，即为消耗CPU的线程。采样的时候要多做几次，保证找到的是真实的消耗线程。<br>在Java应用中如果us占用过高，代表运行的应用程序消耗了大部分CPU，常见为线程一直处理可运行状态(Runnable)，并且无阻塞地执行循环，正则或复杂计算；也可能是每次请求都分配大量内存，导致频繁GC甚至频繁FullGC造成的，这时就需要依靠jvm工具查看了(jps, jmap, jstat等) 。</p><p><strong>sy: 内核线程处理占用百分比</strong><br>sy值过高表示Linux花费大量时间在线程切换上，Java造成原因通常是启动大量线程，且多数线程处理不断阻塞(如IO等待，锁等待)和执行的状态变化中，造成大量上下文切换。这时可通过 kill -3 java_pid或jstack -l java_pid 命令dump出线程信息，找出不断切换线程执行状态的原因(也可以通过TDA分析)。</p><p>如下使用 vmstat 1 查看上下文切换(cs)及sy占用<br><img src="/images/pasted-17.png" alt="upload successful"><br>如果cs值很高的话，再使用 jstack -l java_pid 查看线程堆栈信息，通常可以发现大量线程处于TIMED_WAITING (on object monitor)与Runnable状态转化中，通过on object monitor可以找到锁竞争激烈的代码，从而找出上下文切换的原因。</p><h5 id="文件IO分析"><a href="#文件IO分析" class="headerlink" title="文件IO分析"></a>文件IO分析</h5><p>换出去。因此在查看内存状态时经常发现可用(free)的物理内存不足，但cached用了很多，这是Linux提升文件IO速度的一种方法。这种情况下，如果物理内存足够用，真正的文件IO只有写文件和第一次读的时候才会产生。</p><p>在Linux中文件IO主要通过 pidstat, iostat分析：</p><p>pidstat -d -p java_pid 1 3<br><img src="/images/pasted-18.png" alt="upload successful"><br>KB_rd/s 表示每秒读取的KB数, KB_wr/s表示每秒写入的KB数, 还可以加入-t参数显示具体的线程信息。</p><p>iostat<br><img src="/images/pasted-19.png" alt="upload successful"><br>iostat只能看到整个系统的文件IO，不能查看具体进程消耗情况。Device表示设备卷标名或分区名，tps是每秒的IO请求，是IO消耗关键指标；Blk_read/s表示每秒读的块数量，Blk_wrtn/s表示每秒写的块数量；Blk_read, Blk_wrtn表示总共读写的块数量；当%iowait占用很高的时候，就要关注IO消耗状况了</p><p>这时可以使用 iostat -x 观察：<br><img src="/images/pasted-20.png" alt="upload successful"><br>r/s, w/s 表示每秒读写的请求数, await表示平均每次IO操作的等待时间，avgqu-sz表示等待请求的队列的平均长度，svctm表示平均每次设备执行IO操作的时间，util表示一秒之中有百分之几用于IO操作。</p><p>在Java应用中造成文件IO消耗严重的原因，通常是多个线程进行大量写入操作（如频繁写入日志文件）。这时可以通过pidstat或iostat结合jstack线程信息,找到消耗主体程序。</p><h5 id="网络IO分析"><a href="#网络IO分析" class="headerlink" title="网络IO分析"></a>网络IO分析</h5><p>在分布式Java应用中，网络IO的消耗是非常值得关注的，尤其注意网卡中断是不是均匀地分配到各CPU上(cat /proc/interrupts)。Linux使用sar分析网络IO消耗情况：</p><p>sar -n ALL 1 2<br><img src="/images/pasted-21.png" alt="upload successful"><br>主要观注接包(rxpck/s)，发包(txpck/s)，接包失败(rxerr/s)，发包失败(txerr/s)，丢包(rxdrop/s)，Socket信息(tcpsck , udpsck)。</p><p>由于无法观察具体进程的网络IO消耗，在网络IO消耗高时，只能线程dump，通常这些线程都在进行网络读写操作。在Java网络通信中，通常将对象序列化为字节流发送，反序列化生成对象。</p><h5 id="内存分析"><a href="#内存分析" class="headerlink" title="内存分析"></a>内存分析</h5><p>从Java应用角度上看，内存可分为两部分，即JVM内存与非JVM内存。在JVM中内存消耗主要体现在堆内存上，内存消耗过高会导致频繁GC甚至FullGC，CPU占用高，可以通过jmap, jstat, mat, visualvm等工具跟踪内存消耗情况；生产环境下，通常将 -Xms 和 -Xmx调整为相同的值，避免运行时不断申请内存。非JVM内存通常只有在创建线程或使用DirectByteBuffer时才会产生，最值得关注的是swap的消耗与物理内存的消耗。</p><p>vmstat<br><img src="/images/pasted-22.png" alt="upload successful"><br>swpd表示虚拟内存已使用的部分(kb)，free空闲物理内存，buff表示用于缓冲的内存，cache表示用于作为缓存的内存。swap下的si表示每秒从disk读到内存的数据量，so每秒从内存写入disk的数据量。swpd过高表示物理内存不够用，系统需要频繁从虚拟内存与disk交换数据，严重影响系统的性能。</p><p>sar -r 2 5<br><img src="/images/pasted-23.png" alt="upload successful"><br>通过sar工具可以看到内存占用，空闲，buff, cache的情况。当物理内存空闲时，Linux会使用一部分内存用于buffer以及cache，以提高系统运行效率。因此可认为系统可用物理内存为 kbmemfree + kbbuffers + kbcached。</p><p>此外还可以使用top, pidstat -r -p [pid][interval][times]</p><p>pidstat -r -p 2448 1 5<br><img src="/images/pasted-24.png" alt="upload successful"></p><h5 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h5><p>中断：<a href="http://blog.csdn.net/pxz_002/article/details/7327668" target="_blank" rel="noopener">http://blog.csdn.net/pxz_002/article/details/7327668</a></p><p>CPU占用分析：<a href="http://www.cnblogs.com/yjf512/p/3383915.html" target="_blank" rel="noopener">http://www.cnblogs.com/yjf512/p/3383915.html</a></p><p>JVM内存分析：<a href="http://my.oschina.net/feichexia/blog/196575" target="_blank" rel="noopener">http://my.oschina.net/feichexia/blog/196575</a></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 性能优化 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 性能优化 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    <entry>
       <title>JVM性能调优监控工具（转）</title>
       <link href="/2018/11/12/jvm-xing-neng-diao-you-jian-kong-gong-ju/"/>
       <url>/2018/11/12/jvm-xing-neng-diao-you-jian-kong-gong-ju/</url>
@@ -12,12 +35,14 @@
       
       <categories>
           
-          <category> jvm </category>
+          <category> 性能优化 </category>
           
       </categories>
       
       
         <tags>
+            
+            <tag> 性能优化 </tag>
             
             <tag> jvm </tag>
             
