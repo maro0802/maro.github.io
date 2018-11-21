@@ -6,10 +6,7 @@
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
     <meta name="keywords" content="八种排序算法原理及 Java 实现, Maro&#39;s Blog">
-    <meta name="description" content="
-原文地址 https://juejin.im/post/5b95da8a5188255c775d8124?utm_source=gold_browser_extension
-
-1. 概述排序算法分为内部排序和外部排序，内部排序把数据记录放">
+    <meta name="description" content="1. 概述排序算法分为内部排序和外部排序，内部排序把数据记录放在内存中进行排序，而外部排序因排序的数据量大，内存不能一次容纳全部的排序记录，所以在排序过程中需要访问外存。经常提及的八大排序算法指的就是内部排序的八种算法，分别是冒泡排序、快速">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -228,10 +225,7 @@
         <hr>
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <blockquote>
-<p>原文地址 <a href="https://juejin.im/post/5b95da8a5188255c775d8124?utm_source=gold_browser_extension" target="_blank" rel="noopener">https://juejin.im/post/5b95da8a5188255c775d8124?utm_source=gold_browser_extension</a></p>
-</blockquote>
-<h5 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h5><p>排序算法分为内部排序和外部排序，内部排序把数据记录放在内存中进行排序，而外部排序因排序的数据量大，内存不能一次容纳全部的排序记录，所以在排序过程中需要访问外存。<br><img src="/images/pasted-54.png" alt="upload successful"><br>经常提及的八大排序算法指的就是内部排序的八种算法，分别是冒泡排序、快速排序、直接插入排序、希尔排序、简单选择排序、堆排序、归并排序和基数排序，如果按原理划分，冒泡排序和快速排序都属于交换排序，直接插入排序和希尔排序属于插入排序，而简单选择排序和堆排序属于选择排序，如上图所示。</p>
+                <h5 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h5><p>排序算法分为内部排序和外部排序，内部排序把数据记录放在内存中进行排序，而外部排序因排序的数据量大，内存不能一次容纳全部的排序记录，所以在排序过程中需要访问外存。<br><img src="/images/pasted-54.png" alt="upload successful"><br>经常提及的八大排序算法指的就是内部排序的八种算法，分别是冒泡排序、快速排序、直接插入排序、希尔排序、简单选择排序、堆排序、归并排序和基数排序，如果按原理划分，冒泡排序和快速排序都属于交换排序，直接插入排序和希尔排序属于插入排序，而简单选择排序和堆排序属于选择排序，如上图所示。</p>
 <h5 id="2-冒泡排序"><a href="#2-冒泡排序" class="headerlink" title="2. 冒泡排序"></a>2. 冒泡排序</h5><p><strong>2.1基本思想</strong><br>冒泡排序（Bubble Sort）是一种简单的排序算法。它重复访问要排序的数列，一次比较两个元素，如果他们的顺序错误就把他们交换过来。访问数列的工作是重复地进行直到没有再需要交换的数据，也就是说该数列已经排序完成。这个算法的名字由来是因为越小的元素会经由交换慢慢 “浮” 到数列的顶端，像水中的气泡从水底浮到水面。<br><img src="https://user-gold-cdn.xitu.io/2018/9/10/165c1650231bab74?imageslim" alt=""></p>
 <p><strong>2.2 算法描述</strong><br>冒泡排序算法的算法过程如下：</p>
 <p>①. 比较相邻的元素。如果第一个比第二个大，就交换他们两个。</p>
@@ -632,7 +626,7 @@
 </tr>
 </tbody>
 </table>
-<h5 id="7-归并排序"><a href="#7-归并排序" class="headerlink" title="7. 归并排序"></a>7. 归并排序</h5><p>归并排序是建立在归并操作上的一种有效的排序算法，1945 年由约翰 · 冯 · 诺伊曼首次提出。该算法是采用分治法（Divide and Conquer）的一个非常典型的应用，且各层分治递归可以同时进行。</p>
+<h5 id="7-归并排序"><a href="#7-归并排序" class="headerlink" title="7. 归并排序"></a>7. 归并排序</h5><p>归并排序是建立在归并操作上的一种有效的排序算法，1945 年由约翰 冯 诺伊曼首次提出。该算法是采用分治法（Divide and Conquer）的一个非常典型的应用，且各层分治递归可以同时进行。</p>
 <p><strong>7.1 基本思想</strong><br>归并排序算法是将两个（或两个以上）有序表合并成一个新的有序表，即把待排序序列分为若干个子序列，每个子序列是有序的。然后再把有序子序列合并为整体有序序列。<br><img src="https://user-gold-cdn.xitu.io/2018/9/10/165c2d849cf3a4b6?imageslim" alt=""><br><strong>7.2 算法描述</strong><br>采用递归法： ①. 将序列每相邻两个数字进行归并操作，形成 floor(n/2) 个序列，排序后每个序列包含两个元素；</p>
 <p>②. 将上述序列再次归并，形成 floor(n/4) 个序列，每个序列包含四个元素；</p>
 <p>③. 重复步骤②，直到所有元素排序完毕<br><img src="https://user-gold-cdn.xitu.io/2018/9/10/165c2d88eb326ec1?imageslim" alt=""></p>
@@ -920,6 +914,9 @@
 <p>而快速排序则相反，当原表基本有序时，将蜕化为冒泡排序，时间复杂度提高为 O（n2）；</p>
 <p>原表是否有序，对简单选择排序、堆排序、归并排序和基数排序的时间复杂度影响不大。</p>
 <h5 id="11-参考资料"><a href="#11-参考资料" class="headerlink" title="11. 参考资料"></a>11. 参考资料</h5><p><a href="href=&quot;https://link.juejin.im?target=https%3A%2F%2Fitimetraveler.github.io%2F2017%2F07%2F18%2F%25E5%2585%25AB%25E5%25A4%25A7%25E6%258E%2592%25E5%25BA%258F%25E7%25AE%2597%25E6%25B3%2595%25E6%2580%25BB%25E7%25BB%2593%25E4%25B8%258Ejava%25E5%25AE%259E%25E7%258E%25B0%2F%23%25E6%2580%25BB%25E7%25BB%2593&quot;">八大排序算法总结与 java 实现</a><br><a href="href=&quot;https://link.juejin.im?target=https%3A%2F%2Fwww.cnblogs.com%2Fchengxiao%2Fp%2F6129630.html&quot;">图解排序算法 (三) 之堆排序</a></p>
+<blockquote>
+<p>原文地址 <a href="https://juejin.im/post/5b95da8a5188255c775d8124?utm_source=gold_browser_extension" target="_blank" rel="noopener">https://juejin.im/post/5b95da8a5188255c775d8124?utm_source=gold_browser_extension</a></p>
+</blockquote>
 
             </div>
             <hr>
@@ -1090,10 +1087,7 @@
                     </div>
                 </a>
                 <div class="card-content article-content">
-                    <div class="summary">
-原文地址 https://juejin.im/post/5b95da8a5188255c775d8124?utm_source=gold_browser_extension
-
-1. 概述排序算法分为内部排序和外部排序，内部排序把数据记录放</div>
+                    <div class="summary">1. 概述排序算法分为内部排序和外部排序，内部排序把数据记录放在内存中进行排序，而外部排序因排序的数据量大，内存不能一次容纳全部的排序记录，所以在排序过程中需要访问外存。经常提及的八大排序算法指的就是内部排序的八种算法，分别是冒泡排序、快速</div>
                     <div class="publish-info">
                             <span class="publish-date">
                                 <i class="fa fa-clock-o fa-fw icon-date"></i>2018-11-21
