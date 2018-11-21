@@ -456,36 +456,47 @@
     <div class="row article-row">
         
         <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge left-badge text-color">上一篇</div>
+            <div class="article-badge left-badge text-color">本篇</div>
             <div class="card">
-                <a href="/2018/11/21/ba-chong-pai-xu-suan-fa-yuan-li-ji-java-shi-xian/">
+                <a href="/2018/11/21/redis-huan-cun-chuan-tou-huan-cun-xue-beng-de-fen-xi-ji-jie-jue-fang-an/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/14.jpg" class="responsive-img" alt="八种排序算法原理及 Java 实现">
+                        <img src="/medias/featureimages/8.jpg" class="responsive-img" alt="Redis缓存穿透、缓存雪崩的分析及解决方案">
                         
-                        <span class="card-title">八种排序算法原理及 Java 实现</span>
+                        <span class="card-title">Redis缓存穿透、缓存雪崩的分析及解决方案</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
-                    <div class="summary">1. 概述排序算法分为内部排序和外部排序，内部排序把数据记录放在内存中进行排序，而外部排序因排序的数据量大，内存不能一次容纳全部的排序记录，所以在排序过程中需要访问外存。经常提及的八大排序算法指的就是内部排序的八种算法，分别是冒泡排序、快速</div>
+                    <div class="summary">什么是缓存击穿缓存击穿是查询数据库中不存在的数据，如果有用户恶意模拟请求很多缓存中不存在的数据，由于缓存中都没有，导致这些请求短时间内直接落在了DB上，对DB产生压力，导致数据库异常。
+解决方案布隆过滤器
+最常见的则是采用布隆过滤器，将所有</div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="fa fa-clock-o fa-fw icon-date"></i>2018-11-21
-                        </span>
+                            <span class="publish-date">
+                                <i class="fa fa-clock-o fa-fw icon-date"></i>2018-11-21
+                            </span>
                         <span class="publish-author">
                             
-                            <i class="fa fa-user fa-fw"></i>
-                            Maro
+                            <i class="fa fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/分布式/" class="post-category" target="_blank">
+                                    分布式
+                                </a>
+                            
                             
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/算法/" target="_blank">
-                        <span class="chip bg-color">算法</span>
+                    <a href="/tags/分布式/" target="_blank">
+                        <span class="chip bg-color">分布式</span>
+                    </a>
+                    
+                    <a href="/tags/Redis/" target="_blank">
+                        <span class="chip bg-color">Redis</span>
                     </a>
                     
                 </div>
